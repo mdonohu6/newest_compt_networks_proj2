@@ -4,15 +4,12 @@
 
 using namespace std;
 
-
-
 struct Node{
 	int id;
 	string addr;
 	int controlPort;
 	int dataPort;
 	int neighbors[10];
-
 
 } somethingHere;
 
@@ -68,7 +65,6 @@ int main()
 		cout << myNode.neighbors[j] << ' ';
 	}
 	cout << '\n';
-
 
 	fin.close();
 
