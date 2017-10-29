@@ -1,0 +1,13 @@
+
+// to compile g++ -o threadythreads -pthread threadythreads.cpp
+
+Whenever you start coding follow these steps:
+
+1 navigate to your directory
+2 git pull
+3 do all of your coding magic until it's time to push your updates
+4 git add .
+5 git commit -m "put a message here"
+6 git push
+
+
