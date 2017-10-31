@@ -10,4 +10,7 @@ Whenever you start coding follow these steps:
 5 git commit -m "put a message here"
 6 git push
 
+To successfully compile 'cppnodecodeWithThreads.cpp, use this: 
+g++ -std=c++0x -pthread -o cppnodecodeWithThreads cppnodecodeWithThreads.cpp 
+
 https://www.cs.rutgers.edu/~pxk/417/notes/sockets/udp.html <- UDP port example
