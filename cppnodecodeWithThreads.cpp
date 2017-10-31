@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <cstring>
 
 using namespace std;
 
@@ -40,7 +41,7 @@ void initiateControlThread(Node myNode)
 	struct sockaddr_in myaddr;
 	memset((char *)&myaddr, 0, sizeof(myaddr));
 	myaddr.sin_family = AF_INET;
-	myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	myaddr.sin_addr.s_addr = htonl(INADDR_ANY); //do we somehow put in the remoteXX.cs... thing here?
 	myaddr.sin_port = htons(myNode.controlPort);
 
 	if (::bind(controlSocket, (struct sockaddr *) &myaddr, sizeof(myaddr)) < 0) {
@@ -134,6 +135,22 @@ int main()
 	fin.close();
 
 	createThreads(myNode);
+
+	int sock; //Is the socket the port? Don't know how to "caulculate" the socket like the TCP project
+	fd_set rfds;
+	int retval;
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return 0;
 }
