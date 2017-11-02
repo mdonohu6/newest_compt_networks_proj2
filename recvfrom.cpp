@@ -58,11 +58,14 @@ void initiateControlThread(Node myNode)
 	}
 
 	cout << endl << " ——— NOTE: have created socket and bound it to port, not sure how to move forward with sending message to other client. ——— " << endl;
-
-	struct hostent *hn = gethostbyname(myNode.addr.c_str());
+	
+	// this is node 1's address (the sender)
+	string sendersAddr = "remote01.cs.binghamton.edu";
+	struct hostent *hn = gethostbyname(sendersAddr.c_str());
 
 	for (int i=0; hn->h_addr_list[i] != 0; i++){
 	
+		cout << "insid ethe lkjadf" << endl;
                 paddr((unsigned char*) hn->h_addr_list[i]);
 		//cout << (unsigned char*) hn->h_addr_list[i];
 		//cout << (unsigned char*) hn->h_addr_list[i];
@@ -74,13 +77,23 @@ void initiateControlThread(Node myNode)
 	nodeaddr.sin_family = AF_INET;
 	nodeaddr.sin_port = htons(myNode.controlPort);
 
+	socklen_t myLength = sizeof(nodeaddr);
+
 	memcpy((void*)&nodeaddr.sin_addr, hn->h_addr_list[0], hn->h_length);
 
-	// about to send a message 
+	unsigned char buf[12];
 	
-	if (sendto(controlSocket, "Hello, World!", strlen("Hello, World!"), 0, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-		perror("sendto failed");
-	}
+	
+
+	while(1) {
+		ssize_t recvlen = recvfrom(controlSocket, buf, 12, 0, (struct sockaddr *)&nodeaddr, &myLength);
+                printf("received %d bytes\n", recvlen);
+                if (recvlen > 0) {
+                        buf[recvlen] = 0;
+                        printf("received message: \"%s\"\n", buf);
+                }
+        }
+	
 
 
 /*  ———————————————————————————————————————————————————————————————
@@ -119,7 +132,69 @@ int main()
 	Node myNode;
 	ifstream fin;
 
-	fin.open("input.txt");
+	int controlSocket = -1;
+	if ((controlSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		perror("cannot create controlSocket");
+	}
+	else 
+	{
+		cout << endl << "Successfully created UDP controlSocket" << endl;
+		cout << "The controlSocket descriptor is: " << controlSocket << endl;
+	}
+
+	struct sockaddr_in myaddr;
+	memset((char *)&myaddr, 0, sizeof(myaddr));
+	myaddr.sin_family = AF_INET;
+	myaddr.sin_addr.s_addr = htonl(INADDR_ANY); //do we somehow put in the remoteXX.cs... thing here?
+	myaddr.sin_port = htons(5005);
+
+	if (::bind(controlSocket, (struct sockaddr *) &myaddr, sizeof(myaddr)) < 0) {
+		perror("bind failed");
+	} else 
+	{
+		cout << "Successfully bound the control socket" << endl;
+	}
+
+	// this is node 1's address (the sender)
+	string sendersAddr = "remote01.cs.binghamton.edu";
+	struct hostent *hn = gethostbyname(sendersAddr.c_str());
+
+	for (int i=0; hn->h_addr_list[i] != 0; i++){
+	
+		cout << "insid ethe lkjadf" << endl;
+                paddr((unsigned char*) hn->h_addr_list[i]);
+		//cout << (unsigned char*) hn->h_addr_list[i];
+		//cout << (unsigned char*) hn->h_addr_list[i];
+	}	
+	cout << endl;
+
+	struct sockaddr_in nodeaddr;
+	memset((char*)&nodeaddr,0,sizeof(nodeaddr));
+	nodeaddr.sin_family = AF_INET;
+	nodeaddr.sin_port = htons(myNode.controlPort);
+
+	socklen_t myLength = sizeof(nodeaddr);
+
+	memcpy((void*)&nodeaddr.sin_addr, hn->h_addr_list[0], hn->h_length);
+
+	unsigned char buf[13];
+	
+	
+
+	while(1) {
+		ssize_t recvlen = recvfrom(controlSocket, buf, 12, 0, (struct sockaddr *)&nodeaddr, &myLength);
+                printf("received %d bytes\n", recvlen);
+                if (recvlen > 0) {
+                        buf[recvlen] = 0;
+                        printf("received message: \"%s\"\n", buf);
+                }
+        }
+	
+
+	
+
+/*	fin.open("input.txt");
 
 	cout << "Node #: ";
 	cin >> realID;
@@ -162,24 +237,13 @@ int main()
 	cout << '\n';
 
 	fin.close();
+*/
 
-	createThreads(myNode);
+	//createThreads(myNode);
 
 	int sock; //Is the socket the port? Don't know how to "caulculate" the socket like the TCP project
 	fd_set rfds;
 	int retval;
-
-
-
-
-
-
-
-
-
-
-
-
 
 	return 0;
 }
