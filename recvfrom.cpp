@@ -61,7 +61,7 @@ void initiateControlThread(Node myNode)
 	
 	// this is node 1's address (the sender)
 	string sendersAddr = "remote01.cs.binghamton.edu";
-	struct hostent *hn = gethostbyname(sendersAddr.c_str());
+	struct hostent *hn = gethostbyname(myNode.addr.c_str());
 
 	for (int i=0; hn->h_addr_list[i] != 0; i++){
 	
@@ -75,7 +75,7 @@ void initiateControlThread(Node myNode)
 	struct sockaddr_in nodeaddr;
 	memset((char*)&nodeaddr,0,sizeof(nodeaddr));
 	nodeaddr.sin_family = AF_INET;
-	nodeaddr.sin_port = htons(myNode.controlPort);
+	nodeaddr.sin_port = htons(5000);
 
 	socklen_t myLength = sizeof(nodeaddr);
 
@@ -87,12 +87,12 @@ void initiateControlThread(Node myNode)
 
 	while(1) {
 		ssize_t recvlen = recvfrom(controlSocket, buf, 12, 0, (struct sockaddr *)&nodeaddr, &myLength);
-                printf("received %d bytes\n", recvlen);
-                if (recvlen > 0) {
-                        buf[recvlen] = 0;
-                        printf("received message: \"%s\"\n", buf);
-                }
-        }
+            printf("received %d bytes\n", recvlen);
+            if (recvlen > 0) {
+                    buf[recvlen] = 0;
+                    printf("received message: \"%s\"\n", buf);
+            }
+    }
 	
 
 
@@ -147,7 +147,7 @@ int main()
 	memset((char *)&myaddr, 0, sizeof(myaddr));
 	myaddr.sin_family = AF_INET;
 	myaddr.sin_addr.s_addr = htonl(INADDR_ANY); //do we somehow put in the remoteXX.cs... thing here?
-	myaddr.sin_port = htons(5005);
+	myaddr.sin_port = htons(5002);
 
 	if (::bind(controlSocket, (struct sockaddr *) &myaddr, sizeof(myaddr)) < 0) {
 		perror("bind failed");
@@ -172,7 +172,7 @@ int main()
 	struct sockaddr_in nodeaddr;
 	memset((char*)&nodeaddr,0,sizeof(nodeaddr));
 	nodeaddr.sin_family = AF_INET;
-	nodeaddr.sin_port = htons(myNode.controlPort);
+	nodeaddr.sin_port = htons(5000);
 
 	socklen_t myLength = sizeof(nodeaddr);
 
@@ -181,9 +181,10 @@ int main()
 	unsigned char buf[13];
 	
 	
-
+	cout << "Before\n";
 	while(1) {
-		ssize_t recvlen = recvfrom(controlSocket, buf, 12, 0, (struct sockaddr *)&nodeaddr, &myLength);
+		cout << "In here\n";
+		ssize_t recvlen = recvfrom(controlSocket, buf, 13, 0, (struct sockaddr *)&nodeaddr, &myLength);
                 printf("received %d bytes\n", recvlen);
                 if (recvlen > 0) {
                         buf[recvlen] = 0;
@@ -193,7 +194,18 @@ int main()
 	
 
 	
-
+	
+	
+	
+	//use select() call to wait on multiple client ports once everybody is set up to see who is sending you data, only use for receiving
+	//use recvfrom AFTER select so you know who you're receiving from
+	//use FD_ISSET() to see WHICH file descriptor has the data
+	
+	
+	
+	
+	
+	
 /*	fin.open("input.txt");
 
 	cout << "Node #: ";

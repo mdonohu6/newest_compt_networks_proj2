@@ -17,10 +17,13 @@ struct Node{
 	int controlPort;
 	int dataPort;
 	int neighbors[10];
+	string neighAddr[10];
+	int neighCPort[10];
+	int neighDPort[10];
 
 } somethingHere;
 
-const int Nodes = 5;
+const int NODES = 5;
 
 void paddr(unsigned char *a)
 {
@@ -59,29 +62,45 @@ void initiateControlThread(Node myNode)
 
 	cout << endl << " ——— NOTE: have created socket and bound it to port, not sure how to move forward with sending message to other client. ——— " << endl;
 
-	struct hostent *hn = gethostbyname(myNode.addr.c_str());
-
-	for (int i=0; hn->h_addr_list[i] != 0; i++){
+	string aString = "remote02.cs.binghamton.edu";
+	struct hostent *hn = gethostbyname(aString.c_str()); ///CHANGED THIS
 	
-                paddr((unsigned char*) hn->h_addr_list[i]);
+	//cout << "Broken 3" << endl;
+	
+	for (int i=0; hn->h_addr_list[i] != 0; i++)
+	{
+         paddr((unsigned char*) hn->h_addr_list[i]); 
 		//cout << (unsigned char*) hn->h_addr_list[i];
 		//cout << (unsigned char*) hn->h_addr_list[i];
 	}	
 	cout << endl;
 
+	//cout << "Broken 1" << endl;
+	
 	struct sockaddr_in nodeaddr;
 	memset((char*)&nodeaddr,0,sizeof(nodeaddr));
 	nodeaddr.sin_family = AF_INET;
-	nodeaddr.sin_port = htons(myNode.controlPort);
+	nodeaddr.sin_port = htons(myNode.neighCPort[0]); 
 
 	memcpy((void*)&nodeaddr.sin_addr, hn->h_addr_list[0], hn->h_length);
 
-	// about to send a message 
+	//cout << "Broken 2" << endl;
 	
-	if (sendto(controlSocket, "Hello, World!", strlen("Hello, World!"), 0, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+	// about to send a message 
+	if (sendto(controlSocket, "Hello, World!", strlen("Hello, World!"), 0, (struct sockaddr *)&nodeaddr, sizeof(nodeaddr)) < 0) {
 		perror("sendto failed");
 	}
 
+	
+	//senders and receivers data and control ports will be respectively in sync
+	
+	
+	
+	
+	
+	
+	
+	
 
 /*  ———————————————————————————————————————————————————————————————
 	 Need to use things like
@@ -114,9 +133,16 @@ int main()
 {
 	char tempChar = '&';
 	int tempID;
+	int tempAddr;
+	int tempCtrlPort;
+	int tempDataPort;
+	int tempNeighbor;
+	int nodeIndex = 0;
+	Node tempNode;
 	int realID;
-	int neighborIndex = 0;
+	int neighborIndex;
 	Node myNode;
+	Node tempNodes[NODES];
 	ifstream fin;
 
 	fin.open("input.txt");
@@ -124,45 +150,100 @@ int main()
 	cout << "Node #: ";
 	cin >> realID;
 
+	//Set initial values
 	for(int z = 0; z < 10; z++)
 	{
 		myNode.neighbors[z] = -1;
+		myNode.neighAddr[z] = "";
+		myNode.neighCPort[z] = -1;
+		myNode.neighDPort[z] = -1;
 	}
 
-	for(int i = 0; i < Nodes; i++)
+	//Read the input file
+	for(int i = 0; i < NODES; i++)
 	{
-		fin >> tempID;
-
-		if(tempID == realID)
+		neighborIndex = 0;
+		fin >> tempNode.id >> tempNode.addr >> tempNode.controlPort >> tempNode.dataPort;
+		
+		fin >> tempChar;
+		
+		for(int z = 0; z < 10; z++)
 		{
-			myNode.id = realID;
-			fin >> myNode.addr >> myNode.controlPort >> myNode.dataPort;
-			
-			fin >> tempChar;
-			while(tempChar != ';')
-			{
-				//cout << "Temp" << tempChar << endl;
-				myNode.neighbors[neighborIndex] = tempChar - 48; //MIGHT STILL BE A STRING SOMEHOW FUCKING STRING
-				neighborIndex++;				
-				fin >> tempChar;
-			}
+			tempNode.neighbors[z] = -1;
 		}
-		else
+		
+		while(tempChar != ';')
 		{
-			fin.ignore(100, '\n');
+			//cout << "Temp" << tempChar << endl;
+			tempNode.neighbors[neighborIndex] = tempChar - 48; //MIGHT STILL BE A STRING SOMEHOW FUCKING STRING
+			neighborIndex++;				
+			fin >> tempChar;
+		}
+		
+		tempNodes[nodeIndex] = tempNode;
+		nodeIndex++;
+	}
+	
+	//cout << tempNodes[0].id << ' ' << tempNodes[0].addr << ' ' << tempNodes[0].controlPort << ' ' << tempNodes[0].dataPort << ' ' << endl;
+	
+	
+	
+	//fin >> tempID;
+	
+	tempID = realID;
+	
+	//Check our node against the input data
+	for(int i = 0; i < NODES; i++)
+	{
+		//cout << "In for loop" << endl;
+		//cout << tempNodes[i].id << endl;
+		
+		if(realID == tempNodes[i].id)
+		{
+			//cout << "SOMETHING" << endl;
+			myNode = tempNodes[i];
+			//cout << "WORKED\n";
 		}
 	}
-
-	//cout << myNode.addr << ' ' << myNode.controlPort << ' ' << myNode.dataPort << ' ';
+	
+	
+	//cout << myNode.addr << ' '	<< myNode.controlPort << ' ' << myNode.dataPort << ' ';
 	cout << "Neighbors: ";
+	
+	//Process the neighbors
 	for(int j = 0; myNode.neighbors[j] != -1; j++)
 	{
 		cout << myNode.neighbors[j] << ' ';
+		
+		//Fill neighbor info
+		for(int k = 0; k < NODES; k++)
+		{
+			//Match number IDs
+			if(myNode.neighbors[j] == tempNodes[k].id)
+			{
+				myNode.neighAddr[j] = tempNodes[k].addr;
+				myNode.neighCPort[j] = tempNodes[k].controlPort;
+				myNode.neighDPort[j] = tempNodes[k].dataPort;
+			}
+		}
+		cout << myNode.neighAddr[j] << ' ' << myNode.neighCPort[j] << ' ' << myNode.neighDPort[j] << endl;
 	}
 	cout << '\n';
 
 	fin.close();
 
+	
+	
+	
+	
+	//I believe now we have access to the remote addresses as well as the node we need
+	
+	
+	
+	
+	
+	
+	
 	createThreads(myNode);
 
 	int sock; //Is the socket the port? Don't know how to "caulculate" the socket like the TCP project
