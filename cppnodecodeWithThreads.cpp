@@ -11,6 +11,12 @@
 
 using namespace std;
 
+struct Table{
+	int dest;
+	int nextHop;
+	int dist;
+} otherthingHere;
+
 struct Node{
 	int id;
 	string addr;
@@ -20,6 +26,7 @@ struct Node{
 	string neighAddr[10];
 	int neighCPort[10];
 	int neighDPort[10];
+	Table myTable[5];
 
 } somethingHere;
 
@@ -144,19 +151,23 @@ int main()
 	Node myNode;
 	Node tempNodes[NODES];
 	ifstream fin;
+	bool isSet[NODES];
 
 	fin.open("input.txt");
 
 	cout << "Node #: ";
 	cin >> realID;
 
+	
+
 	//Set initial values
-	for(int z = 0; z < 10; z++)
+	for(int z = 0; z < NODES; z++)
 	{
 		myNode.neighbors[z] = -1;
 		myNode.neighAddr[z] = "";
 		myNode.neighCPort[z] = -1;
 		myNode.neighDPort[z] = -1;
+		isSet[z] = false;
 	}
 
 	//Read the input file
@@ -240,10 +251,49 @@ int main()
 	
 	
 	
+
 	
+	//Outer for loop processes actual current node
+	for(int i = 0; i < NODES; i++)
+	{
+		//Inner for loop checks neighbors
+		for(int j = 0; j < NODES; j++)
+		{
+			//Check if node's id
+			if(i+1 == myNode.id && isSet[i] == false)
+			{
+				myNode.myTable[i].dest = myNode.id;
+				myNode.myTable[i].nextHop = myNode.id;
+				myNode.myTable[i].dist = 0;
+				isSet[i] = true;
+			}
+			//Check if neighbor node
+			else if(i+1 == myNode.neighbors[j] && isSet[i] == false)
+			{
+				myNode.myTable[i].dest = i+1;
+				myNode.myTable[i].nextHop = i+1;
+				myNode.myTable[i].dist = 1;
+				isSet[i] = true;
+			}
+			//Set all values for current node to -1
+			else
+			{
+				if(isSet[i] == false)
+				{
+					myNode.myTable[i].dest = -1;
+					myNode.myTable[i].nextHop = -1;
+					myNode.myTable[i].dist = -1;
+				}			
+			}
+		}
+		myNode.myTable[i].dest = i+1;
+	}
 	
-	
-	
+	for(int i = 0; i < NODES; i++)
+	{
+		cout << myNode.myTable[i].dest << ' ' << myNode.myTable[i].nextHop << ' ' << myNode.myTable[i].dist << endl;
+	}
+
 	createThreads(myNode);
 
 	int sock; //Is the socket the port? Don't know how to "caulculate" the socket like the TCP project

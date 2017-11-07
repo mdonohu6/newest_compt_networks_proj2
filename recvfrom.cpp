@@ -200,6 +200,7 @@ int main()
 	//use select() call to wait on multiple client ports once everybody is set up to see who is sending you data, only use for receiving
 	//use recvfrom AFTER select so you know who you're receiving from
 	//use FD_ISSET() to see WHICH file descriptor has the data
+	//clear and reset FD at end of while loop
 	
 	
 	
