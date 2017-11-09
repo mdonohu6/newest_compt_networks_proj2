@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <cstring>
 #include <netdb.h>
+#include <ctime>
 
 using namespace std;
 
@@ -93,11 +94,21 @@ void initiateControlThread(Node myNode)
 
 	//cout << "Broken 2" << endl;
 	
-	// about to send a message 
-	if (sendto(controlSocket, "Hello, World!", strlen("Hello, World!"), 0, (struct sockaddr *)&nodeaddr, sizeof(nodeaddr)) < 0) {
-		perror("sendto failed");
+	int random = rand() % 10;
+	string myString = "Hello, World!";
+	if(random < 5)
+	{
+		cout << random << endl;
+		myString = "Schmello worl";
 	}
-
+	
+	for(;;)
+	{
+		// about to send a message 
+		if (sendto(controlSocket, myString.c_str(), strlen(myString.c_str()), 0, (struct sockaddr *)&nodeaddr, sizeof(nodeaddr)) < 0) {
+			perror("sendto failed");
+		}	
+	}
 	
 	//senders and receivers data and control ports will be respectively in sync
 	
@@ -158,7 +169,7 @@ int main()
 	cout << "Node #: ";
 	cin >> realID;
 
-	
+	srand(time(NULL));
 
 	//Set initial values
 	for(int z = 0; z < NODES; z++)

@@ -81,12 +81,12 @@ void initiateControlThread(Node myNode)
 
 	memcpy((void*)&nodeaddr.sin_addr, hn->h_addr_list[0], hn->h_length);
 
-	unsigned char buf[12];
+	unsigned char buf[13];
 	
 	
 
 	while(1) {
-		ssize_t recvlen = recvfrom(controlSocket, buf, 12, 0, (struct sockaddr *)&nodeaddr, &myLength);
+		ssize_t recvlen = recvfrom(controlSocket, buf, 13, 0, (struct sockaddr *)&nodeaddr, &myLength);
             printf("received %d bytes\n", recvlen);
             if (recvlen > 0) {
                     buf[recvlen] = 0;
@@ -181,29 +181,55 @@ int main()
 	unsigned char buf[13];
 	
 	
-	cout << "Before\n";
+	
+	//cout << "Before\n";
+	
+	int retval;
+	fd_set rfds;
+	
+	FD_ZERO(&rfds);
+	
+	FD_SET(controlSocket, &rfds);
+	
+	int inc = 0;
+	
 	while(1) {
 		cout << "In here\n";
-		ssize_t recvlen = recvfrom(controlSocket, buf, 13, 0, (struct sockaddr *)&nodeaddr, &myLength);
-                printf("received %d bytes\n", recvlen);
-                if (recvlen > 0) {
-                        buf[recvlen] = 0;
-                        printf("received message: \"%s\"\n", buf);
-                }
-        }
+		
+		retval = select(controlSocket + 1, &rfds, NULL, NULL, NULL);
+		cout << "After select\n";
+		
+		//check from first file descriptor up until controlSocket
+		if(FD_ISSET(controlSocket, &rfds)) //The only thing this changes is there is no 1 line alternating of the 2 strings, now we have only large chunks of the 2 strings. Upgrade or downgrade?
+		{
+			ssize_t recvlen = recvfrom(controlSocket, buf, 13, 0, (struct sockaddr *)&nodeaddr, &myLength);
+					printf("received %d bytes\n", recvlen);
+					if (recvlen > 0) {
+							buf[recvlen] = 0;
+							printf("received message: \"%s\"\n", buf);
+							inc++;
+							cout << inc << endl; //Sometimes will alternate between the two strings, sometimes will print one string 47-77 times before switching
+					}
+					
+					FD_ZERO(&rfds);
+					FD_SET(controlSocket, &rfds);
+			}
+		}
 	
 
-	
-	
-	
+		//pthread attach and pthread detach
+		//use lock only when a new distance vector comes in
+		//data field changes to include each hop as a packet travels
+		//packet ID can be an arbitrary values thats incremented after each packet is generated
 	
 	//use select() call to wait on multiple client ports once everybody is set up to see who is sending you data, only use for receiving
 	//use recvfrom AFTER select so you know who you're receiving from
 	//use FD_ISSET() to see WHICH file descriptor has the data
 	//clear and reset FD at end of while loop
 	
-	
-	
+	//what is the relationship between the mini threads we were told to use to process the multiple nodes to read in from at the same time and the 2 main ones
+	// we have now? would locking between select() and recvfrom() help alleviate this problem?
+	//mutex from slides
 	
 	
 	
@@ -254,9 +280,9 @@ int main()
 
 	//createThreads(myNode);
 
-	int sock; //Is the socket the port? Don't know how to "caulculate" the socket like the TCP project
-	fd_set rfds;
-	int retval;
+	//int sock; //Is the socket the port? Don't know how to "caulculate" the socket like the TCP project
+	//fd_set rfds;
+	//int retval;
 
 	return 0;
 }
